@@ -1,19 +1,13 @@
 package shell
 
 import (
-	"bytes"
-	"os/exec"
 	"testing"
 )
 
-func TestReq_load(t *testing.T) {
+func Test(t *testing.T) {
 	type fields struct {
-		IType    InterceptorType
-		Opts     []string
-		Cmd      string
-		fullCmd  string
-		executor *exec.Cmd
-		in       *bytes.Buffer
+		IType InterceptorType
+		Cmd   string
 	}
 	tests := []struct {
 		name   string
@@ -30,17 +24,26 @@ func TestReq_load(t *testing.T) {
 		{
 			name: "",
 			fields: fields{
-				Cmd:   `shell_test.sh Crayon`,
+				Cmd: `./shell_test.sh Crayon`,
+			},
+		},
+		{
+			name: "",
+			fields: fields{
+				Cmd: `echo now: "date +%F"
+                     echo my name is Crayon
+                     ./shell_test.sh Crayon
+                     bash -c 'echo hello'`,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := NewReqByOption(
-				WithIType(tt.fields.IType),
-				WithCmd(tt.fields.Cmd),
-			).FlatAppendOptions(tt.fields.Opts)
-			ret, err := r.Do()
+			req := NewReq()
+			if tt.fields.IType != "" {
+				req.SetIType(tt.fields.IType)
+			}
+			ret, err := req.AddCmd(tt.fields.Cmd).Do()
 			if err != nil {
 				t.Errorf("some errors occur, err: %v\n", err)
 			}

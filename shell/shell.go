@@ -3,204 +3,109 @@ package shell
 import (
 	"bytes"
 	"crayontool-go/strutil"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"os/exec"
-	"strings"
 )
 
 type InterceptorType string
 
+// 解释器类型
 const (
-	Leave   = ""
-	Bash    = "/bin/bash"
-	Sh      = "/bin/sh"
-	CSh     = "/usr/bin/csh"
-	KSh     = "/usr/bin/ksh"
-	Sh4Root = "/sbin/sh"
+	defaultIType = Sh
+	Sh           = "/bin/sh"
+	Sh4Root      = "/sbin/sh"
+	Bash         = "/bin/bash"
+	CSh          = "/usr/bin/csh"
+	KSh          = "/usr/bin/ksh"
 )
 
+// 缓冲大小
 const (
-	// 缓冲大小
-	bufferSize = 1 << 5
-	// 执行可执行文件时需添加前缀
-	execPrefix = "./"
+	// defaultBufferSize 默认缓冲大小
+	defaultBufferSize  = 1 << 5
+	defaultCmdListSize = 1 << 2
+)
+
+var (
+	ErrLackIType = errors.New("ErrLackIType: InterceptorType is not specify")
+	ErrCmdEmpty  = errors.New("ErrCmdEmpty: CmdList is empty")
 )
 
 type Req struct {
 	// shell解释器类型
 	IType InterceptorType
-	// 解释器参数
-	Opts []string
 	// shell命令
-	Cmd string
-	// 完整命令
-	fullCmd  string
+	CmdList  []string
 	executor *exec.Cmd
 	in       *bytes.Buffer
+	err      *bytes.Buffer
 }
 
-type ReqOption func(req *Req)
-
-func WithIType(it InterceptorType) ReqOption {
-	return func(req *Req) {
-		req.IType = it
-	}
+func (r *Req) SetIType(it InterceptorType) *Req {
+	r.IType = it
+	return r
 }
 
-func WithCmd(cmd string) ReqOption {
-	return func(req *Req) {
-		req.Cmd = cmd
-	}
+func (r *Req) AddCmd(cmd ...string) *Req {
+	r.CmdList = append(r.CmdList, cmd...)
+	return r
 }
 
 func (t InterceptorType) ToString() string {
 	return string(t)
 }
 
-func NewReqByOption(options ...ReqOption) *Req {
-	req := Req{}
-	for i := range options {
-		options[i](&req)
+func NewReq() *Req {
+	req := Req{
+		IType:    defaultIType,
+		CmdList:  make([]string, 0, defaultCmdListSize),
+		executor: exec.Command(defaultIType),
 	}
+	req.in = bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
+	req.executor.Stdin = req.in
+	req.err = bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
+	req.executor.Stderr = req.err
 	return &req
 }
 
-func (r *Req) AppendOption(opt string) *Req {
-	r.Opts = append(r.Opts, opt)
-	return r
-}
-
-func (r *Req) FlatAppendOptions(opts []string) *Req {
-	if len(opts) > 0 {
-		for i := range opts {
-			r.AppendOption(opts[i])
-		}
+func (r *Req) validate() error {
+	if r.IType == "" {
+		return ErrLackIType
 	}
-	return r
-}
-
-func (r *Req) loadFullCmd() {
-	joinReq := strutil.NewJoinReq(
-		[]string{
-			r.IType.ToString(),
-			strings.Join(r.Opts, " "),
-			r.Cmd,
-		},
-	).SetSep(" ").SetOmitEmpty(true)
-	if r.IType == Leave {
-		joinReq.SetPrefix(execPrefix)
+	if len(r.CmdList) == 0 {
+		return ErrCmdEmpty
 	}
-	// strings.Join空安全的
-	r.fullCmd = joinReq.Join()
-	// r.fullCmd = strings.Join([]string{r.IType.ToString(), strings.Join(r.Opts, " "), r.Cmd}, " ")
-	fmt.Printf("execute command: %s\n", r.fullCmd)
-}
-
-func (r *Req) load() {
-	r.executor = exec.Command(string(r.IType))
-	r.in = bytes.NewBuffer(make([]byte, 0, bufferSize))
-	r.executor.Stdin = r.in
-
-}
-
-func (r *Req) Do() ([]byte, error) {
-	r.load()
-	r.in.WriteString(r.fullCmd)
-	return r.executor.Output()
-}
-
-/*package shell
-
-import (
-	"fmt"
-	"os"
-	"os/exec"
-	"strings"
-
-	"github.com/google/uuid"
-)
-
-type InterceptorType string
-
-const (
-	Bash    = "/bin/bash"
-	Sh      = "/bin/sh"
-	CSh     = "/usr/bin/csh"
-	KSh     = "/usr/bin/ksh"
-	Sh4Root = "/sbin/sh"
-)
-
-const (
-	bufferSize        = 1 << 5
-	tmpShPathTemplate = "/tmp/tmp.%s.sh"
-	modeExec          = 0755
-)
-
-type Req struct {
-	IType InterceptorType
-	Cmd   string
-	file  *os.File
-}
-
-func SimpleNewReq(cmd string) *Req {
-	return &Req{
-		IType: Sh,
-		Cmd:   cmd,
-	}
-}
-
-func (r *Req) createShFile() error {
-	id := strings.ReplaceAll(uuid.New().String(), "-", "")
-	fName := fmt.Sprintf(tmpShPathTemplate, id)
-	file, err := os.Create(fName)
-	if err != nil {
-		return err
-	}
-	if err := os.Chmod(fName, modeExec); err != nil {
-		return err
-	}
-	r.file = file
 	return nil
 }
 
-func (r *Req) writeCmd() error {
-	_, err := r.file.WriteString(r.Cmd)
+func (r *Req) load() error {
+	if err := r.validate(); err != nil {
+		return err
+	}
+	cmdStr := strutil.NewJoinReq(r.CmdList).SetSep("\n").Join()
+	_, err := r.in.WriteString(cmdStr)
 	return err
 }
 
-func (r *Req) deleteShFile() error {
-	return os.Remove(r.file.Name())
-}
-
-func (r *Req) innerDo() ([]byte, error) {
-	cmd := exec.Command(string(r.IType), r.file.Name())
-	return cmd.Output()
-}
-
-func (r *Req) preprocess() error {
-	if err := r.createShFile(); err != nil {
-		return err
+func (r *Req) readStderr() []byte {
+	stderr, err := ioutil.ReadAll(r.err)
+	if err != nil {
+		fmt.Printf("some errors occur when read stderr, err: %v\n", err)
+		return nil
 	}
-	if err := r.writeCmd(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *Req) postprocess() error {
-	return r.deleteShFile()
+	return stderr
 }
 
 func (r *Req) Do() ([]byte, error) {
-	if err := r.preprocess(); err != nil {
+	if err := r.load(); err != nil {
 		return nil, err
 	}
-	ret, err := r.innerDo()
+	output, err := r.executor.Output()
 	if err != nil {
-		return nil, err
+		stderr := r.readStderr()
+		err = fmt.Errorf("%w\ndetail: %s\n", err, string(stderr))
 	}
-	if err := r.postprocess(); err != nil {
-		return nil, err
-	}
-	return ret, nil
-}*/
+	return output, err
+}
