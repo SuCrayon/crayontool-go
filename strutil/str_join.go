@@ -24,10 +24,10 @@ func (r *JoinReq) writeString(s string, writeSep bool) {
 	if r.OmitEmpty && s == "" {
 		return
 	}
+	r.sb.WriteString(s)
 	if writeSep {
 		r.sb.WriteString(r.Sep)
 	}
-	r.sb.WriteString(s)
 }
 
 func NewJoinReq(elems []string) *JoinReq {
@@ -63,10 +63,11 @@ func (r *JoinReq) Join() string {
 	}
 	r.initStringBuilder()
 	r.writeString(r.Prefix, false)
-	r.writeString(r.Elems[0], false)
-	for _, s := range r.Elems[1:] {
+	length := len(r.Elems)
+	for _, s := range r.Elems[0:length-1] {
 		r.writeString(s, true)
 	}
+	r.writeString(r.Elems[length-1], false)
 	r.writeString(r.Suffix, false)
 	return r.sb.String()
 }
