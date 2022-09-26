@@ -79,13 +79,13 @@ func (t *Time) OffsetDays(days int) *Time {
 
 // OffsetMonths 偏移months月
 func (t *Time) OffsetMonths(months int) *Time {
-	t.Time = t.AddDate(0, 1, 0)
+	t.Time = t.AddDate(0, months, 0)
 	return t
 }
 
 // OffsetYears 偏移years年
 func (t *Time) OffsetYears(years int) *Time {
-	t.Time = t.AddDate(1, 0, 0)
+	t.Time = t.AddDate(years, 0, 0)
 	return t
 }
 
@@ -119,10 +119,10 @@ func DiffDay(t1, t2 *Time) int64 {
 }
 
 /*
+DiffHumanDay 相差自然日
 1. 秒数只差小于一天（绝对相差不到一天），那么只需要判断是否同一天即可
 2. 对于绝对相差大于一天的情况，减掉绝对相差的秒数转到情况1即可
 */
-// DiffHumanDay 相差自然日
 func DiffHumanDay(t1, t2 *Time) int64 {
 	ts1, ts2 := t1.UnixNano(), t2.UnixNano()
 	if ts1 > ts2 {
