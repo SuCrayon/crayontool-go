@@ -1,7 +1,7 @@
 package sshtunnel
 
 import (
-	"crayontool-go/constant"
+	"crayontool-go/pkg/constant"
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"io"
@@ -26,9 +26,9 @@ type Client struct {
 }
 
 type connManager struct {
-	localConn     net.Conn
-	sshConn       *ssh.Client
-	remoteConn    net.Conn
+	localConn  net.Conn
+	sshConn    *ssh.Client
+	remoteConn net.Conn
 }
 
 func NewClient(config *Config) Client {

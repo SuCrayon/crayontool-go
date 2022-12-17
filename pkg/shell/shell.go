@@ -2,7 +2,7 @@ package shell
 
 import (
 	"bytes"
-	"crayontool-go/strutil"
+	"crayontool-go/pkg/strutil"
 	"errors"
 	"fmt"
 	"io/ioutil"

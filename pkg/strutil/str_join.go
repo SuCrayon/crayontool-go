@@ -64,7 +64,7 @@ func (r *JoinReq) Join() string {
 	r.initStringBuilder()
 	r.writeString(r.Prefix, false)
 	length := len(r.Elems)
-	for _, s := range r.Elems[0:length-1] {
+	for _, s := range r.Elems[0 : length-1] {
 		r.writeString(s, true)
 	}
 	r.writeString(r.Elems[length-1], false)
