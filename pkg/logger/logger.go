@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"runtime"
 )
 
 var (
@@ -52,23 +51,7 @@ var (
 )
 
 func getBanner() string {
-	// 换行风格默认为win
-	returnStr := constant.WindowsLineSep
-	osName := runtime.GOOS
-	switch {
-	case windowsReturnOSSet.Contains(osName):
-		{
-			returnStr = constant.WindowsLineSep
-		}
-	case linuxReturnOSSet.Contains(osName):
-		{
-			returnStr = constant.UnixLineSep
-		}
-	case macReturnOSSet.Contains(osName):
-		{
-			returnStr = constant.MacOSLineSep
-		}
-	}
+	returnStr := strutil.GetLineSep()
 	return strutil.SprintfRepeatedTimes(bannerTemplate, returnStr, 7)
 }
 
