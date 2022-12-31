@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	initLogWriterError = errors.New("init log writer err")
+	initLogWriterErr = errors.New("init log writer err")
 )
 
 const (
@@ -35,15 +35,12 @@ type LogField struct {
 }
 
 type LogWriter interface {
-	Alert(v interface{})
-	Close() error
 	Debug(v interface{}, fields ...LogField)
-	Error(v interface{}, fields ...LogField)
 	Info(v interface{}, fields ...LogField)
-	Severe(v interface{})
-	Slow(v interface{}, fields ...LogField)
-	Stack(v interface{})
-	Stat(v interface{}, fields ...LogField)
+	Warn(v interface{}, fields ...LogField)
+	Error(v interface{}, fields ...LogField)
+	Fatal(v interface{}, fields ...LogField)
+	Close() error
 }
 
 var (
@@ -59,56 +56,52 @@ func init() {
 	// 默认初始化zap库
 	logWriter, err := NewZapWriter()
 	if err != nil {
-		log.Fatalf("%s err: %+v\n", initLogWriterError.Error(), err)
+		log.Fatalf("%s err: %+v\n", initLogWriterErr.Error(), err)
 	}
 	sugarLogWriter = logWriter
 	log.Print(getBanner())
 }
 
-func Alert(v interface{}) {
-	sugarLogWriter.Alert(v)
-}
-
-func Close() error {
-	return sugarLogWriter.Close()
-}
-
-func Debug(v interface{}) {
-	sugarLogWriter.Debug(v)
+func Debug(v interface{}, fields ...LogField) {
+	sugarLogWriter.Debug(v, fields...)
 }
 
 func Debugf(format string, v ...interface{}) {
 	sugarLogWriter.Debug(fmt.Sprintf(format, v...))
 }
 
-func Error(v interface{}) {
-	sugarLogWriter.Error(v)
-}
-
-func Errorf(format string, v ...interface{}) {
-	sugarLogWriter.Error(fmt.Sprintf(format, v...))
-}
-
-func Info(v interface{}) {
-	sugarLogWriter.Info(v)
+func Info(v interface{}, fields ...LogField) {
+	sugarLogWriter.Info(v, fields...)
 }
 
 func Infof(format string, v ...interface{}) {
 	sugarLogWriter.Info(fmt.Sprintf(format, v...))
 }
 
-func Severe(v interface{}) {
-	sugarLogWriter.Severe(v)
+func Warn(v interface{}, fields ...LogField) {
+	sugarLogWriter.Warn(v, fields...)
 }
 
-func Slow(v interface{}) {
-	sugarLogWriter.Slow(v)
+func Warnf(format string, v ...interface{}) {
+	sugarLogWriter.Warn(fmt.Sprintf(format, v...))
 }
 
-func Stack(v interface{}) {
-	sugarLogWriter.Stack(v)
+func Error(v interface{}, fields ...LogField) {
+	sugarLogWriter.Error(v, fields...)
 }
 
-func Stat(v interface{}) {
-	sugarLogWriter.Stat(v)
+func Errorf(format string, v ...interface{}) {
+	sugarLogWriter.Error(fmt.Sprintf(format, v...))
+}
+
+func Fatal(v interface{}, fields ...LogField) {
+	sugarLogWriter.Fatal(v, fields...)
+}
+
+func Fatalf(format string, v ...interface{}) {
+	sugarLogWriter.Fatal(fmt.Sprintf(format, v...))
+}
+
+func Close() error {
+	return sugarLogWriter.Close()
 }

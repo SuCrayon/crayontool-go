@@ -40,34 +40,22 @@ func (w *zapWriter) Debug(v interface{}, fields ...LogField) {
 	w.logger.Debug(fmt.Sprint(v), ToZapFields(fields...)...)
 }
 
-func (w *zapWriter) Alert(v interface{}) {
-	w.logger.Warn(fmt.Sprint(v))
+func (w *zapWriter) Info(v interface{}, fields ...LogField) {
+	w.logger.Info(fmt.Sprint(v), ToZapFields(fields...)...)
 }
 
-func (w *zapWriter) Close() error {
-	return w.logger.Sync()
+func (w *zapWriter) Warn(v interface{}, fields ...LogField) {
+	w.logger.Warn(fmt.Sprint(v), ToZapFields(fields...)...)
 }
 
 func (w *zapWriter) Error(v interface{}, fields ...LogField) {
 	w.logger.Error(fmt.Sprint(v), ToZapFields(fields...)...)
 }
 
-func (w *zapWriter) Info(v interface{}, fields ...LogField) {
-	w.logger.Info(fmt.Sprint(v), ToZapFields(fields...)...)
+func (w *zapWriter) Fatal(v interface{}, fields ...LogField) {
+	w.logger.Fatal(fmt.Sprint(v), ToZapFields(fields...)...)
 }
 
-func (w *zapWriter) Severe(v interface{}) {
-	w.logger.Fatal(fmt.Sprint(v))
-}
-
-func (w *zapWriter) Slow(v interface{}, fields ...LogField) {
-	w.logger.Warn(fmt.Sprint(v), ToZapFields(fields...)...)
-}
-
-func (w *zapWriter) Stack(v interface{}) {
-	w.logger.Error(fmt.Sprint(v), zap.Stack(zapLogStackKey))
-}
-
-func (w *zapWriter) Stat(v interface{}, fields ...LogField) {
-	w.logger.Info(fmt.Sprint(v), ToZapFields(fields...)...)
+func (w *zapWriter) Close() error {
+	return w.logger.Sync()
 }
