@@ -11,3 +11,8 @@ const (
 	PlusStr     = "+"
 	MinusStr    = "-"
 )
+
+const (
+	IntZero = 0
+	IntOne  = 1
+)

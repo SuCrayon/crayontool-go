@@ -1,16 +1,18 @@
 package mongoapi
 
+import "crayontool-go/pkg/mongoapi/typereq"
+
 type CreateRoleReq struct {
 	iCommandReq
 	RoleName                   string
 	Privileges                 []*Privilege
-	Roles                      []IRole
+	Roles                      []typereq.IRole
 	AuthenticationRestrictions []*AuthenticationRestriction
 }
 
 type Privilege struct {
-	Resource IResource
-	Actions  []TypeAction
+	Resource typereq.IResource
+	Actions  []typereq.TypeAction
 }
 
 type AuthenticationRestriction struct {
