@@ -89,12 +89,12 @@ func GetRoleCommander(ctl MongoCtl) RoleCommander {
 
 func (r *roleCommander) CreateRole() *CreateRoleReq {
 	return &CreateRoleReq{
-		iCommandReq: NewDefaultCommandReq(r.ctl).setCommandStr(CmdCreateRole),
+		iCommandReq: newDefaultCommandReq(r.ctl).setCommandStr(CmdCreateRole),
 	}
 }
 
 func (r *roleCommander) RolesInfo() *RolesInfoReq {
 	return &RolesInfoReq{
-		iCommandReq: NewDefaultCommandReq(r.ctl).setCommandStr(CmdRolesInfo),
+		iCommandReq: newDefaultCommandReq(r.ctl).setCommandStr(CmdRolesInfo),
 	}
 }

@@ -34,6 +34,6 @@ func GetDiagnosticCommander(ctl MongoCtl) DiagnosticCommander {
 
 func (d *diagnosticCommander) Ping() *PingReq {
 	return &PingReq{
-		iCommandReq: NewDefaultCommandReq(d.ctl).setCommandStr(CmdPing),
+		iCommandReq: newDefaultCommandReq(d.ctl).setCommandStr(CmdPing),
 	}
 }
