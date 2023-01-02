@@ -3,12 +3,12 @@ package logger
 import (
 	"fmt"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"sync"
 )
 
 const (
-	callerSkipOffset = 2
-	zapLogStackKey   = "stack"
+	zapLogStackKey = "stack"
 )
 
 type zapWriter struct {
@@ -17,12 +17,8 @@ type zapWriter struct {
 	logger  *zap.Logger
 }
 
-func NewZapWriter(opts ...zap.Option) (LogWriter, error) {
-	opts = append(opts, zap.AddCallerSkip(callerSkipOffset))
-	logger, err := zap.NewProduction(opts...)
-	if err != nil {
-		return nil, err
-	}
+func NewZapWriter(core zapcore.Core, opts ...zap.Option) (LogWriter, error) {
+	logger := zap.New(core, opts...)
 	return &zapWriter{
 		logger: logger,
 	}, nil
