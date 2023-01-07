@@ -1,16 +1,46 @@
 package maputil
 
 import (
+	"crayontool-go/pkg/constant"
+	"crayontool-go/pkg/strutil"
 	"strings"
+	"sync"
 )
 
 const (
-	escape       = "\\"
-	escapeSymbol = '\\'
-	keySep       = "."
+	escape       = constant.Escape
+	escapeSymbol = constant.EscapeSymbol
+	keySep       = constant.Dot
+	keySepSymbol = constant.DotSymbol
 )
 
-func ParseDeepKey(deepKey string) ([]string, error) {
+type IDeepKeyParser interface {
+	EscapeSymbol() uint8
+	KeySepSymbol() uint8
+	Parse(deepKey string) ([]string, error)
+}
+
+type deepKeyParser struct {
+	mutex sync.RWMutex
+}
+
+type deepKeyParserV2 struct {
+	deepKeyParser
+}
+
+var (
+	DeepKeyParser = deepKeyParser{}
+)
+
+func (d *deepKeyParser) EscapeSymbol() uint8 {
+	return escapeSymbol
+}
+
+func (d *deepKeyParser) KeySepSymbol() uint8 {
+	return keySepSymbol
+}
+
+func (d *deepKeyParser) Parse(deepKey string) ([]string, error) {
 	var ret = make([]string, 0)
 	// 最大循环次数
 	maxLoopCount := len(deepKey)
@@ -29,15 +59,15 @@ func ParseDeepKey(deepKey string) ([]string, error) {
 		}*/
 	}
 	for i := 0; i < maxLoopCount; i++ {
-		index := strings.Index(curStr, keySep)
+		index := strings.Index(curStr, strutil.Symbol2Str(d.KeySepSymbol()))
 		if index == -1 {
 			// 没有找到分隔符
 			appendFunc(len(curStr))
 			break
 		}
-		if index >= 1 && curStr[index-1] == escapeSymbol {
+		if index >= 1 && curStr[index-1] == d.EscapeSymbol() {
 			// 前面一个字符是转义字符
-			if index >= 2 && curStr[index-2] == escapeSymbol {
+			if index >= 2 && curStr[index-2] == d.EscapeSymbol() {
 				// 再前面一个字符是转义字符，则转义不生效，正常解析的同时去除
 				// 丢弃分隔符
 				appendFunc(index)
@@ -60,6 +90,58 @@ func ParseDeepKey(deepKey string) ([]string, error) {
 
 	if sb.Len() > 0 {
 		ret = append(ret, sb.String())
+	}
+	return ret, nil
+}
+
+func (d *deepKeyParserV2) Parse(deepKey string) ([]string, error) {
+	var (
+		ret       = make([]string, 0)
+		char      uint8
+		leftIndex uint64
+	)
+
+	for i := 0; i < len(deepKey); i++ {
+		char = deepKey[i]
+		if char == d.KeySepSymbol() {
+			/*// 找到分隔符
+			  if i >= 1 && deepKey[i-1] == escapeSymbol {
+			  	if i >= 2 && deepKey[i-2] == escapeSymbol {
+			  		// 再前面一个是转义字符，则转义不生效，正常解析
+			  		outerKey\\.innerKey
+
+			  		append(ret, str[leftIndex:i])
+			  		leftIndex = i + 1
+			  	} else {
+			  		// 前一个字符是转义字符，转义
+			  		outerKey\.innerKey
+
+
+			  	}
+			  } else {
+			  	// 没有遇到转义，正常解析
+			  	outerKey.innerKey
+
+			  	append(ret, str[leftIndex:i])
+			  	leftIndex = i + 1
+			  }*/
+			if i >= 1 && deepKey[i-1] == d.EscapeSymbol() {
+				if !(i >= 2 && deepKey[i-2] == d.EscapeSymbol()) {
+					// 被转义了
+					// 把转义用的转义字符去除
+					// TODO: [OPT] 循环内修改字符串，待优化
+					deepKey = deepKey[:i-1] + deepKey[i:]
+					continue
+				}
+			}
+			ret = append(ret, deepKey[leftIndex:i])
+			leftIndex = uint64(i + 1)
+		}
+	}
+
+	if leftIndex != uint64(len(deepKey)) {
+		// 最后的状态应该是leftIndex等于deepKey索引+1，即等于len(deepKey)，不等则需要把leftIndex开始的字符串加入结果中
+		ret = append(ret, deepKey[leftIndex:])
 	}
 	return ret, nil
 }

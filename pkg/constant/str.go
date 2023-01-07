@@ -24,6 +24,10 @@ const (
 const (
 	EscapeSymbol = '\\'
 	Escape       = "\\"
+	DotSymbol    = '.'
+	Dot          = "."
+	Dollar       = "$"
+	DollarSymbol = '$'
 )
 
 const (

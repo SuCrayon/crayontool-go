@@ -13,11 +13,11 @@ type deepKeyOperator struct {
 }
 
 var (
-	DeepKeyOperator = &deepKeyOperator{}
+	DeepKeyOperator = deepKeyOperator{}
 )
 
 func (d *deepKeyOperator) Set(target map[string]interface{}, deepKey string, value interface{}) error {
-	split, err := ParseDeepKey(deepKey)
+	split, err := DeepKeyParser.Parse(deepKey)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (d *deepKeyOperator) Set(target map[string]interface{}, deepKey string, val
 }
 
 func (d *deepKeyOperator) SetIfAbsent(target map[string]interface{}, deepKey string, value interface{}) error {
-	split, err := ParseDeepKey(deepKey)
+	split, err := DeepKeyParser.Parse(deepKey)
 	if err != nil {
 		return err
 	}
