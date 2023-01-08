@@ -13,6 +13,7 @@ const (
 )
 
 const (
-	IntZero = 0
-	IntOne  = 1
+	IntZero        = 0
+	IntOne         = 1
+	IntNegativeOne = -1
 )
