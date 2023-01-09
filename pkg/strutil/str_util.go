@@ -32,3 +32,7 @@ func GetLineSep() string {
 	}
 	return returnStr
 }
+
+func Symbol2Str(symbol uint8) string {
+	return string(symbol)
+}
