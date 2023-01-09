@@ -72,12 +72,9 @@ type customDeepKeyParser struct {
 	deepKeyParserV2
 }
 
-func (c *customDeepKeyParser) KeySepSymbol() uint8 {
-	return constant.DollarSymbol
-}
-
 func Test_deepKeyParser_CustomParser(t *testing.T) {
 	parser := customDeepKeyParser{}
+	parser.SetKeySepSymbol(constant.DollarSymbol)
 	for _, rawDeepKey := range deepKeyTestList {
 		deepKey := strings.ReplaceAll(rawDeepKey, constant.Dot, constant.Dollar)
 		ret, err := parser.Parse(deepKey)

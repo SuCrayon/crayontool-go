@@ -15,13 +15,15 @@ const (
 )
 
 type IDeepKeyParser interface {
-	EscapeSymbol() uint8
-	KeySepSymbol() uint8
+	SetEscapeSymbol(uint8) IDeepKeyParser
+	SetKeySepSymbol(uint8) IDeepKeyParser
 	Parse(deepKey string) ([]string, error)
 }
 
 type deepKeyParser struct {
-	mutex sync.RWMutex
+	mutex        sync.RWMutex
+	escapeSymbol uint8
+	keySepSymbol uint8
 }
 
 type deepKeyParserV2 struct {
@@ -29,15 +31,20 @@ type deepKeyParserV2 struct {
 }
 
 var (
-	DeepKeyParser = deepKeyParser{}
+	DeepKeyParser = deepKeyParser{
+		escapeSymbol: escapeSymbol,
+		keySepSymbol: keySepSymbol,
+	}
 )
 
-func (d *deepKeyParser) EscapeSymbol() uint8 {
-	return escapeSymbol
+func (d *deepKeyParser) SetEscapeSymbol(symbol uint8) IDeepKeyParser {
+	d.escapeSymbol = symbol
+	return d
 }
 
-func (d *deepKeyParser) KeySepSymbol() uint8 {
-	return keySepSymbol
+func (d *deepKeyParser) SetKeySepSymbol(symbol uint8) IDeepKeyParser {
+	d.keySepSymbol = symbol
+	return d
 }
 
 func (d *deepKeyParser) Parse(deepKey string) ([]string, error) {
@@ -59,15 +66,15 @@ func (d *deepKeyParser) Parse(deepKey string) ([]string, error) {
 		}*/
 	}
 	for i := 0; i < maxLoopCount; i++ {
-		index := strings.Index(curStr, strutil.Symbol2Str(d.KeySepSymbol()))
+		index := strings.Index(curStr, strutil.Symbol2Str(d.keySepSymbol))
 		if index == -1 {
 			// 没有找到分隔符
 			appendFunc(len(curStr))
 			break
 		}
-		if index >= 1 && curStr[index-1] == d.EscapeSymbol() {
+		if index >= 1 && curStr[index-1] == d.escapeSymbol {
 			// 前面一个字符是转义字符
-			if index >= 2 && curStr[index-2] == d.EscapeSymbol() {
+			if index >= 2 && curStr[index-2] == d.escapeSymbol {
 				// 再前面一个字符是转义字符，则转义不生效，正常解析的同时去除
 				// 丢弃分隔符
 				appendFunc(index)
@@ -103,7 +110,7 @@ func (d *deepKeyParserV2) Parse(deepKey string) ([]string, error) {
 
 	for i := 0; i < len(deepKey); i++ {
 		char = deepKey[i]
-		if char == d.KeySepSymbol() {
+		if char == d.keySepSymbol {
 			/*// 找到分隔符
 			  if i >= 1 && deepKey[i-1] == escapeSymbol {
 			  	if i >= 2 && deepKey[i-2] == escapeSymbol {
@@ -125,8 +132,8 @@ func (d *deepKeyParserV2) Parse(deepKey string) ([]string, error) {
 			  	append(ret, str[leftIndex:i])
 			  	leftIndex = i + 1
 			  }*/
-			if i >= 1 && deepKey[i-1] == d.EscapeSymbol() {
-				if !(i >= 2 && deepKey[i-2] == d.EscapeSymbol()) {
+			if i >= 1 && deepKey[i-1] == d.escapeSymbol {
+				if !(i >= 2 && deepKey[i-2] == d.escapeSymbol) {
 					// 被转义了
 					// 把转义用的转义字符去除
 					// TODO: [OPT] 循环内修改字符串，待优化
