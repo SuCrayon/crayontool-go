@@ -1,11 +1,11 @@
-package mongoapi
+package bsonkey
 
 const (
 	KeyComment      = "comment"
 	KeyWriteConcern = "writeConcern"
 )
 
-// JSON Key Name
+// BSON Key Name
 const (
 	KeyRole        = "role"
 	KeyDB          = "db"

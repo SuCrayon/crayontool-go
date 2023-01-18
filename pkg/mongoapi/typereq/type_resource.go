@@ -1,7 +1,8 @@
-package mongoapi
+package typereq
 
 import (
 	"crayontool-go/pkg/constant"
+	"crayontool-go/pkg/mongoapi/bsonkey"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
@@ -16,8 +17,8 @@ type DBCollResource struct {
 
 func (d *DBCollResource) ToBSON() bsonx.Val {
 	doc := bsonx.Doc{}
-	doc = doc.Set(KeyDB, bsonx.String(d.DB))
-	doc = doc.Set(KeyCollection, bsonx.String(d.Collection))
+	doc = doc.Set(bsonkey.KeyDB, bsonx.String(d.DB))
+	doc = doc.Set(bsonkey.KeyCollection, bsonx.String(d.Collection))
 	return bsonx.Document(doc)
 }
 
@@ -26,7 +27,7 @@ type ClusterResource struct {
 
 func (c *ClusterResource) ToBSON() bsonx.Val {
 	doc := bsonx.Doc{}
-	doc = doc.Set(KeyCluster, bsonx.Boolean(constant.True))
+	doc = doc.Set(bsonkey.KeyCluster, bsonx.Boolean(constant.True))
 	return bsonx.Document(doc)
 }
 
@@ -36,6 +37,6 @@ type AnyResource struct {
 
 func (a *AnyResource) ToBSON() bsonx.Val {
 	doc := bsonx.Doc{}
-	doc = doc.Set(KeyAnyResource, bsonx.Boolean(constant.True))
+	doc = doc.Set(bsonkey.KeyAnyResource, bsonx.Boolean(constant.True))
 	return bsonx.Document(doc)
 }

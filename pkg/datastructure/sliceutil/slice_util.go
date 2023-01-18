@@ -50,3 +50,9 @@ func Equals(slice1, slice2 []interface{}) bool {
 	}
 	return constant.True
 }
+
+func IntSliceFill(slice []int, v int) {
+	for i := range slice {
+		slice[i] = v
+	}
+}

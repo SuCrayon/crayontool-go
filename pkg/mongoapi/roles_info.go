@@ -2,6 +2,8 @@ package mongoapi
 
 import (
 	"crayontool-go/pkg/logger"
+	"crayontool-go/pkg/mongoapi/typereq"
+	"crayontool-go/pkg/mongoapi/typeresp"
 	"fmt"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
@@ -17,14 +19,35 @@ const (
 type RolesInfoReq struct {
 	iCommandReq
 	// RolesInfo string, document, array, or integer
-	RolesInfo                      []IRole
+	RolesInfo                      typereq.IRolesInfo
 	ShowAuthenticationRestrictions bool
 	ShowBuiltinRoles               bool
 	ShowPrivileges                 bool
 }
 
+func (r *RolesInfoReq) SetRolesInfo(rolesInfo typereq.IRolesInfo) *RolesInfoReq {
+	r.RolesInfo = rolesInfo
+	return r
+}
+
+func (r *RolesInfoReq) SetShowAuthenticationRestrictions(showAuthenticationRestrictions bool) *RolesInfoReq {
+	r.ShowAuthenticationRestrictions = showAuthenticationRestrictions
+	return r
+}
+
+func (r *RolesInfoReq) SetShowBuiltinRoles(showBuiltinRoles bool) *RolesInfoReq {
+	r.ShowBuiltinRoles = showBuiltinRoles
+	return r
+}
+
+func (r *RolesInfoReq) SetShowPrivileges(showPrivileges bool) *RolesInfoReq {
+	r.ShowPrivileges = showPrivileges
+	return r
+}
+
 type RolesInfoResult struct {
-	commandResult
+	CommandResult `bson:",inline"`
+	Roles         []typeresp.TRole `bson:"roles" json:"roles" yaml:"roles" xml:"roles"`
 }
 
 func (r *RolesInfoReq) ParseToBSONCmd() (bsonx.IDoc, error) {
@@ -48,41 +71,51 @@ func (r *RolesInfoReq) ParseToBSONCmd() (bsonx.IDoc, error) {
 	           "codeName" : "CommandNotFound"
 	   }
 	*/
-	return bsonx.Doc{
-		{
-			Key:   r.GetCommandStr(),
-			Value: bsonx.Int64(1),
-		},
-		{
-			Key:   KeyShowAuthenticationRestrictions,
-			Value: bsonx.Boolean(r.ShowAuthenticationRestrictions),
-		},
-		{
-			Key:   KeyShowBuiltinRoles,
-			Value: bsonx.Boolean(r.ShowBuiltinRoles),
-		},
-		{
-			Key:   KeyShowPrivileges,
-			Value: bsonx.Boolean(r.ShowPrivileges),
-		},
-	}, nil
+	iDoc, err := r.iCommandReq.ParseToBSONCmd()
+	if err != nil {
+		return nil, err
+	}
+
+	doc := bsonx.Document(iDoc).Document()
+	doc = doc.Prepend(KeyShowPrivileges, bsonx.Boolean(r.ShowPrivileges))
+	doc = doc.Prepend(KeyShowBuiltinRoles, bsonx.Boolean(r.ShowBuiltinRoles))
+	doc = doc.Prepend(KeyShowAuthenticationRestrictions, bsonx.Boolean(r.ShowAuthenticationRestrictions))
+	doc = doc.Prepend(r.GetCommandStr(), r.RolesInfo.ToBSON())
+
+	return doc, nil
+}
+
+func (r *RolesInfoReq) GetResult() (*RolesInfoResult, error) {
+	resp, err := r.getResp()
+	if err != nil {
+		return nil, err
+	}
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+	var ret RolesInfoResult
+	err = resp.Decode(&ret)
+	return &ret, err
 }
 
 func (r *RolesInfoReq) Do() *RolesInfoReq {
+	defer r.iCommandReq.Do()
 	cmd, err := r.ParseToBSONCmd()
 	if err != nil {
 		logger.Errorf("%s err: %+v\n", ParseToBSONCmdErr.Error(), err)
 		return r
 	}
+	logger.Debugf("command doc: %v\n", cmd)
 	result, err := r.GetCtl().RunCommand(r.GetDatabase(), cmd)
 	if err != nil {
 		logger.Errorf("%s err: %+v\n", RunCommandErr.Error(), err)
 		return r
 	}
 	if result.Err() != nil {
-		logger.Errorf("%s err: %+v\n", RunCommandResultErr.Error(), err)
+		logger.Errorf("%s err: %+v\n", RunCommandResultErr.Error(), result.Err())
 		return r
 	}
-	fmt.Println(result.DecodeBytes())
+	logger.Debug(fmt.Sprint(result.DecodeBytes()))
+	r.setRespSingleResult(result)
 	return r
 }

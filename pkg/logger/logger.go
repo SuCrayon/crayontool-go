@@ -1,16 +1,12 @@
 package logger
 
 import (
-	"crayontool-go/pkg/constant"
-	"crayontool-go/pkg/datastructure/set"
 	"crayontool-go/pkg/strutil"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"log"
-)
-
-var (
-	initLogWriterErr = errors.New("init log writer err")
+	"sync"
 )
 
 const (
@@ -23,10 +19,18 @@ const (
 		"               /____/                                            /____//____/             %s"
 )
 
+const (
+	currentInitFuncRegistryKey = "current"
+	zapInitFuncRegistryKey     = "zap"
+)
+
+const (
+	callerSkipOffset = 2
+)
+
 var (
-	windowsReturnOSSet = set.NewSetWithCap(1).AddAll(constant.WindowsOSName)
-	linuxReturnOSSet   = set.NewSetWithCap(1).AddAll(constant.LinuxOSName)
-	macReturnOSSet     = set.NewSetWithCap(1).AddAll(constant.MacOSName)
+	initLogWriterErr     = errors.New("init log writer err")
+	initFuncNotExistsErr = errors.New("logger init func may not exists")
 )
 
 type LogField struct {
@@ -43,18 +47,53 @@ type LogWriter interface {
 	Close() error
 }
 
+type InitFunc func() (LogWriter, error)
+
 var (
-	sugarLogWriter LogWriter
+	initOnce         sync.Once
+	mutex            sync.RWMutex
+	initFuncRegistry map[string]InitFunc
+	sugarLogWriter   LogWriter
 )
+
+func init() {
+	// 初始化函数注册表
+	initFuncRegistry = map[string]InitFunc{
+		currentInitFuncRegistryKey: defaultInitZapLogger,
+		zapInitFuncRegistryKey:     defaultInitZapLogger,
+	}
+}
+
+func execInitFunc() (LogWriter, error) {
+	mutex.RLock()
+	initFunc, ok := initFuncRegistry[currentInitFuncRegistryKey]
+	mutex.RUnlock()
+	if !ok {
+		return nil, initFuncNotExistsErr
+	}
+	return initFunc()
+}
 
 func getBanner() string {
 	returnStr := strutil.GetLineSep()
 	return strutil.SprintfRepeatedTimes(bannerTemplate, returnStr, 7)
 }
 
-func init() {
+func defaultInitZapLogger() (LogWriter, error) {
+	var opts []zap.Option
+	opts = append(opts, zap.AddCallerSkip(callerSkipOffset))
+	logger, err := zap.NewDevelopment(opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &zapWriter{
+		logger: logger,
+	}, nil
+}
+
+func initLogWriter() {
 	// 默认初始化zap库
-	logWriter, err := NewZapWriter()
+	logWriter, err := execInitFunc()
 	if err != nil {
 		log.Fatalf("%s err: %+v\n", initLogWriterErr.Error(), err)
 	}
@@ -62,46 +101,62 @@ func init() {
 	log.Print(getBanner())
 }
 
+func InitLogWriter() {
+	// 只执行一次
+	initOnce.Do(initLogWriter)
+}
+
 func Debug(v interface{}, fields ...LogField) {
+	InitLogWriter()
 	sugarLogWriter.Debug(v, fields...)
 }
 
 func Debugf(format string, v ...interface{}) {
+	InitLogWriter()
 	sugarLogWriter.Debug(fmt.Sprintf(format, v...))
 }
 
 func Info(v interface{}, fields ...LogField) {
+	InitLogWriter()
 	sugarLogWriter.Info(v, fields...)
 }
 
 func Infof(format string, v ...interface{}) {
+	InitLogWriter()
 	sugarLogWriter.Info(fmt.Sprintf(format, v...))
 }
 
 func Warn(v interface{}, fields ...LogField) {
+	InitLogWriter()
 	sugarLogWriter.Warn(v, fields...)
 }
 
 func Warnf(format string, v ...interface{}) {
+	InitLogWriter()
 	sugarLogWriter.Warn(fmt.Sprintf(format, v...))
 }
 
 func Error(v interface{}, fields ...LogField) {
+	InitLogWriter()
 	sugarLogWriter.Error(v, fields...)
 }
 
 func Errorf(format string, v ...interface{}) {
+	InitLogWriter()
 	sugarLogWriter.Error(fmt.Sprintf(format, v...))
 }
 
 func Fatal(v interface{}, fields ...LogField) {
+	InitLogWriter()
 	sugarLogWriter.Fatal(v, fields...)
 }
 
 func Fatalf(format string, v ...interface{}) {
+	InitLogWriter()
 	sugarLogWriter.Fatal(fmt.Sprintf(format, v...))
 }
 
 func Close() error {
+	InitLogWriter()
 	return sugarLogWriter.Close()
 }

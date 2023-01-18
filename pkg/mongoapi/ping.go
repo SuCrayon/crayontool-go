@@ -1,18 +1,20 @@
 package mongoapi
 
 import (
-	"crayontool-go/pkg/constant"
 	"crayontool-go/pkg/logger"
+	"crayontool-go/pkg/mongoapi/typereq"
 	"fmt"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
+
+// reference: https://www.mongodb.com/docs/manual/reference/command/ping/#mongodb-dbcommand-dbcmd.ping
 
 type PingReq struct {
 	iCommandReq
 }
 
 type PingResult struct {
-	commandResult
+	CommandResult `bson:",inline"`
 }
 
 func (p *PingReq) ParseToBSONCmd() (bsonx.IDoc, error) {
@@ -20,7 +22,8 @@ func (p *PingReq) ParseToBSONCmd() (bsonx.IDoc, error) {
 	if err != nil {
 		return nil, err
 	}
-	doc = bsonx.Document(doc).Document().Prepend(p.GetCommandStr(), bsonx.Boolean(constant.True))
+	oneVal := typereq.IntOne{}
+	doc = bsonx.Document(doc).Document().Prepend(p.GetCommandStr(), oneVal.ToBSON())
 	return doc, nil
 }
 
@@ -48,6 +51,7 @@ func (p *PingReq) Do() *PingReq {
 		p.setRespErr(err)
 		return p
 	}
+	logger.Debugf("command doc: %v\n", cmd)
 	result, err := p.GetCtl().RunCommand(p.GetDatabase(), cmd)
 	if err != nil {
 		logger.Errorf("%s err: %+v\n", RunCommandErr.Error(), err)
@@ -58,15 +62,15 @@ func (p *PingReq) Do() *PingReq {
 		return p
 	}
 	if result.Err() != nil {
-		logger.Errorf("%s err: %+v\n", RunCommandResultErr.Error(), err)
+		logger.Errorf("%s err: %+v\n", RunCommandResultErr.Error(), result.Err())
 		/*return &commandResp{
 		    err: result.Err(),
 		}*/
 		p.setRespErr(result.Err())
 		return p
 	}
-	fmt.Println(result.DecodeBytes())
-	//return &commandResp{singleResult: result}
+	logger.Debug(fmt.Sprint(result.DecodeBytes()))
 	p.setRespSingleResult(result)
+	//return &commandResp{singleResult: result}
 	return p
 }
