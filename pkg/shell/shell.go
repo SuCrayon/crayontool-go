@@ -2,10 +2,9 @@ package shell
 
 import (
 	"bytes"
+	"crayontool-go/pkg/datastructure/set"
 	"crayontool-go/pkg/strutil"
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"os/exec"
 )
 
@@ -29,8 +28,8 @@ const (
 )
 
 var (
-	ErrLackIType = errors.New("ErrLackIType: InterceptorType is not specify")
-	ErrCmdEmpty  = errors.New("ErrCmdEmpty: CmdList is empty")
+	LackITypeErr = errors.New("ErrLackIType: InterceptorType is not specify")
+	CmdEmptyErr  = errors.New("ErrCmdEmpty: CmdList is empty")
 )
 
 type Req struct {
@@ -38,9 +37,10 @@ type Req struct {
 	IType InterceptorType
 	// shell命令
 	CmdList  []string
+	// 退出码白名单
+	exitCodeWhiteSet set.Set
 	executor *exec.Cmd
 	in       *bytes.Buffer
-	err      *bytes.Buffer
 }
 
 func (r *Req) SetIType(it InterceptorType) *Req {
@@ -53,6 +53,16 @@ func (r *Req) AddCmd(cmd ...string) *Req {
 	return r
 }
 
+func (r *Req) AddWhiteExitCode(codes ...int) *Req {
+	if r.exitCodeWhiteSet == nil {
+		r.exitCodeWhiteSet = set.NewSetWithCap(len(codes))
+	}
+	for _, code := range codes {
+		r.exitCodeWhiteSet.Add(code)
+	}
+	return r
+}
+
 func (t InterceptorType) ToString() string {
 	return string(t)
 }
@@ -61,21 +71,20 @@ func NewReq() *Req {
 	req := Req{
 		IType:    defaultIType,
 		CmdList:  make([]string, 0, defaultCmdListSize),
+		exitCodeWhiteSet: set.NewSet(),
 		executor: exec.Command(defaultIType),
 	}
 	req.in = bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
 	req.executor.Stdin = req.in
-	req.err = bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
-	req.executor.Stderr = req.err
 	return &req
 }
 
 func (r *Req) validate() error {
 	if r.IType == "" {
-		return ErrLackIType
+		return LackITypeErr
 	}
 	if len(r.CmdList) == 0 {
-		return ErrCmdEmpty
+		return CmdEmptyErr
 	}
 	return nil
 }
@@ -89,23 +98,20 @@ func (r *Req) load() error {
 	return err
 }
 
-func (r *Req) readStderr() []byte {
-	stderr, err := ioutil.ReadAll(r.err)
-	if err != nil {
-		fmt.Printf("some errors occur when read stderr, err: %v\n", err)
-		return nil
+func (r *Req) isWhiteExitCode(err error) bool {
+	if ee, ok := err.(*exec.ExitError); ok {
+		return r.exitCodeWhiteSet.Contains(ee.ExitCode())
 	}
-	return stderr
+	return false
 }
 
 func (r *Req) Do() ([]byte, error) {
 	if err := r.load(); err != nil {
 		return nil, err
 	}
-	output, err := r.executor.Output()
-	if err != nil {
-		stderr := r.readStderr()
-		err = fmt.Errorf("%w\ndetail: %s\n", err, string(stderr))
+	output, err := r.executor.CombinedOutput()
+	if r.isWhiteExitCode(err) {
+		err = nil
 	}
 	return output, err
 }
