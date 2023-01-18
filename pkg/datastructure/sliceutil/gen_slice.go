@@ -1,5 +1,7 @@
 package sliceutil
 
+import "math/rand"
+
 func IndexOrderGenFunc(arr []int, i int) int {
 	return i
 }
@@ -107,4 +109,12 @@ func GenFactorialSlice(cap int) []int {
 
 func GenFactorialReverseSlice(cap int) []int {
 	return GenReverseSliceWithGenFunc(cap, ReverseFactorialGenFunc)
+}
+
+func GenIndexShuffleOrderSlice(cap int) []int {
+	slice := GenIndexOrderSlice(cap)
+	rand.Shuffle(len(slice), func(i, j int) {
+		slice[i], slice[j] = slice[j], slice[i]
+	})
+	return slice
 }
