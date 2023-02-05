@@ -28,6 +28,8 @@ const (
 	Dot          = "."
 	Dollar       = "$"
 	DollarSymbol = '$'
+	Space        = " "
+	SpaceSymbol  = ' '
 )
 
 const (

@@ -56,3 +56,21 @@ func IntSliceFill(slice []int, v int) {
 		slice[i] = v
 	}
 }
+
+func ByteSliceReverse(slice []byte) {
+	length := len(slice)
+	for i := 0; i < length/2; i++ {
+		b := slice[i]
+		slice[i] = slice[length-1-i]
+		slice[length-1-i] = b
+	}
+}
+
+func RuneSliceReverse(slice []rune) {
+	length := len(slice)
+	for i := 0; i < length/2; i++ {
+		b := slice[i]
+		slice[i] = slice[length-1-i]
+		slice[length-1-i] = b
+	}
+}
