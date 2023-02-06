@@ -1,4 +1,4 @@
-module crayontool-go
+module github.com/SuCrayon/crayontool-go
 
 go 1.16
 
