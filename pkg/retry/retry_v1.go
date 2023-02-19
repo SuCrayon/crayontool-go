@@ -3,6 +3,7 @@ package retry
 import (
 	"crayontool-go/pkg/constant"
 	"crayontool-go/pkg/logger"
+	"errors"
 	"time"
 )
 
@@ -21,6 +22,36 @@ type FunctionV1 func() error
 var (
 	V1 = v1{}
 )
+
+var (
+	UnknownFunctionType = errors.New("unknown function type")
+)
+
+func funcExecWrapper(function interface{}, catchPanic bool) error {
+	var err error
+	if catchPanic {
+		defer func() {
+			e := recover()
+			if e == nil {
+				return
+			}
+			ee, ok := e.(error)
+			if ok {
+				err = ee
+			}
+		}()
+	}
+	switch function.(type) {
+	case FunctionV1:
+		err = function.(FunctionV1)()
+	case FunctionV2:
+		err = function.(FunctionV2)()
+	default:
+		err = UnknownFunctionType
+	}
+
+	return err
+}
 
 func (v *v1) isTimeout() bool {
 	if v.config.Timeout < constant.IntZero {
@@ -44,17 +75,17 @@ func (v *v1) increaseRetryNum() int {
 	return v.retryNum
 }
 
-func (v *v1) Do(function FunctionV1, opts ...Option) Error {
+func (v *v1) Do(function FunctionV1, opts ...Option) Errors {
 	config := NewConfig(opts...)
 	if err := config.Validate(); err != nil {
 		return NewError(err)
 	}
-	var errs Error
+	var errs Errors
 	v.config = config
 	v.startTime = time.Now()
 	v.timeoutLine = time.Now().Add(config.Timeout)
 	for {
-		err := function()
+		err := funcExecWrapper(function, config.RecoverPanic)
 		if err == nil {
 			return nil
 		}
@@ -73,7 +104,7 @@ func (v *v1) Do(function FunctionV1, opts ...Option) Error {
 			break
 		}
 		d := config.IntervalGenerator(v.retryNum)
-		logger.Infof("sleep before next retry, interval: %v, retryNum: %d\n", d, v.retryNum)
+		logger.Debugf("sleep before next retry, interval: %v, retryNum: %d\n", d, v.retryNum)
 		time.Sleep(d)
 	}
 
