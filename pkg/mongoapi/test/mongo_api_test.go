@@ -2,8 +2,8 @@ package mongoapi
 
 import (
 	"context"
-	"crayontool-go/pkg/mongoapi"
 	"fmt"
+	"github.com/SuCrayon/crayontool-go/pkg/mongoapi"
 	"os"
 	"sync"
 )

@@ -1,6 +1,6 @@
 package mongoapi
 
-import "crayontool-go/pkg/mongoapi/typereq"
+import "github.com/SuCrayon/crayontool-go/pkg/mongoapi/typereq"
 
 type CreateRoleReq struct {
 	iCommandReq

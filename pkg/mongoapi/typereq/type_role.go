@@ -1,7 +1,7 @@
 package typereq
 
 import (
-	"crayontool-go/pkg/mongoapi/bsonkey"
+	"github.com/SuCrayon/crayontool-go/pkg/mongoapi/bsonkey"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 

@@ -1,7 +1,7 @@
 package test
 
 import (
-	"crayontool-go/pkg/osutil/std"
+	"github.com/SuCrayon/crayontool-go/pkg/osutil/std"
 	"testing"
 )
 

@@ -1,8 +1,8 @@
 package password
 
 import (
-	"crayontool-go/pkg/datastructure/sliceutil"
-	"crayontool-go/pkg/strutil"
+	"github.com/SuCrayon/crayontool-go/pkg/datastructure/sliceutil"
+	"github.com/SuCrayon/crayontool-go/pkg/strutil"
 	"strings"
 )
 

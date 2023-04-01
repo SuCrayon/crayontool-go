@@ -1,8 +1,8 @@
 package retry
 
 import (
-	"crayontool-go/pkg/constant"
 	"errors"
+	"github.com/SuCrayon/crayontool-go/pkg/constant"
 	"time"
 )
 

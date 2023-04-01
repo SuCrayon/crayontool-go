@@ -1,8 +1,8 @@
 package sshtunnel
 
 import (
-	"crayontool-go/pkg/constant"
 	"fmt"
+	"github.com/SuCrayon/crayontool-go/pkg/constant"
 	"golang.org/x/crypto/ssh"
 	"io"
 	"net"
