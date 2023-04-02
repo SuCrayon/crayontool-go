@@ -20,6 +20,10 @@ var (
 	globalCtl mongoapi.MongoCtl
 )
 
+func init() {
+	ctlInit()
+}
+
 func ctlInit() {
 	once.Do(func() {
 		username := os.Getenv(envUsername)
