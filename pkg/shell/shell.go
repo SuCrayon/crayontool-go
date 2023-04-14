@@ -40,7 +40,13 @@ type Req struct {
 	// 退出码白名单
 	exitCodeWhiteSet set.Set
 	executor         *exec.Cmd
-	in               *bytes.Buffer
+	stdin            *bytes.Buffer
+	stdout           *bytes.Buffer
+	stderr           *bytes.Buffer
+}
+
+type Resp struct {
+	req *Req
 }
 
 func (r *Req) SetIType(it InterceptorType) *Req {
@@ -74,8 +80,12 @@ func NewReq() *Req {
 		exitCodeWhiteSet: set.NewSet(),
 		executor:         exec.Command(defaultIType),
 	}
-	req.in = bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
-	req.executor.Stdin = req.in
+	req.stdin = bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
+	req.stdout = bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
+	req.stderr = bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
+	req.executor.Stdin = req.stdin
+	req.executor.Stdout = req.stdout
+	req.executor.Stderr = req.stderr
 	return &req
 }
 
@@ -94,24 +104,36 @@ func (r *Req) load() error {
 		return err
 	}
 	cmdStr := strutil.NewJoinReq(r.CmdList).SetSep("\n").Join()
-	_, err := r.in.WriteString(cmdStr)
+	_, err := r.stdin.WriteString(cmdStr)
 	return err
 }
 
-func (r *Req) isWhiteExitCode(err error) bool {
-	if ee, ok := err.(*exec.ExitError); ok {
-		return r.exitCodeWhiteSet.Contains(ee.ExitCode())
-	}
-	return false
+func (r *Req) isWhiteExitCode() bool {
+	return r.exitCodeWhiteSet.Contains(r.executor.ProcessState.ExitCode())
 }
 
-func (r *Req) Do() ([]byte, error) {
+func (r *Req) Do() (*Resp, error) {
+	resp := Resp{
+		req: r,
+	}
 	if err := r.load(); err != nil {
 		return nil, err
 	}
-	output, err := r.executor.CombinedOutput()
-	if r.isWhiteExitCode(err) {
+	err := r.executor.Run()
+	if r.isWhiteExitCode() {
 		err = nil
 	}
-	return output, err
+	return &resp, err
+}
+
+func (r *Resp) ExitCode() int {
+	return r.req.executor.ProcessState.ExitCode()
+}
+
+func (r *Resp) Stdout() *bytes.Buffer {
+	return r.req.stdout
+}
+
+func (r *Resp) Stderr() *bytes.Buffer {
+	return r.req.stderr
 }
