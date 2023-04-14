@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	startOnce       sync.Once
 	TimeJumpSubject ITimeJumpSubject
 )
 
@@ -32,7 +33,7 @@ const (
 type TimeJumpTrigger = func(TimeJumpSignal)
 
 type ITimeJumpSubject interface {
-	Subscribe(TimeJumpSignal, TimeJumpTrigger) (string, error)
+	Subscribe(*TimeJumpSubjectReq) error
 	UnSubscribe(string) error
 	Start()
 	Run()
@@ -57,14 +58,39 @@ type defaultTimeJumpSubject struct {
 	baseTimeJumpSubject
 }
 
-func (d *defaultTimeJumpSubject) Subscribe(signal TimeJumpSignal, trigger TimeJumpTrigger) (string, error) {
+type TimeJumpSubjectReq struct {
+	subscribeName string
+	signal        TimeJumpSignal
+	trigger       TimeJumpTrigger
+}
+
+func NewTimeJumpSubjectReq() *TimeJumpSubjectReq {
+	return &TimeJumpSubjectReq{}
+}
+
+func (r *TimeJumpSubjectReq) SetSubscribeName(subscribeName string) *TimeJumpSubjectReq {
+	r.subscribeName = subscribeName
+	return r
+}
+
+func (r *TimeJumpSubjectReq) SetSignal(signal TimeJumpSignal) *TimeJumpSubjectReq {
+	r.signal = signal
+	return r
+}
+
+func (r *TimeJumpSubjectReq) SetTrigger(trigger TimeJumpTrigger) *TimeJumpSubjectReq {
+	r.trigger = trigger
+	return r
+}
+
+func (d *defaultTimeJumpSubject) Subscribe(req *TimeJumpSubjectReq) error {
 	tTrigger := func(sSignal TimeJumpSignal) {
-		if sSignal == signal {
-			trigger(sSignal)
+		if sSignal == req.signal {
+			req.trigger(sSignal)
 		}
 	}
-	d.triggerRegistry.Store("", tTrigger)
-	return "", nil
+	d.triggerRegistry.Store(req.subscribeName, tTrigger)
+	return nil
 }
 
 func (d *defaultTimeJumpSubject) UnSubscribe(subscriptionName string) error {
@@ -111,18 +137,21 @@ func (d *defaultTimeJumpSubject) Run() {
 	if d.config.ObserveImmediately {
 		d.doRun()
 	}
+	duration := time.Duration(d.config.ObserveInterval) * time.Second
+	timer := time.NewTimer(duration)
 	for {
 		select {
-		case <-time.After(
-			time.Duration(d.config.ObserveInterval) * time.Second,
-		):
+		case <-timer.C:
 			d.doRun()
+			timer.Reset(duration)
 		}
 	}
 }
 
 func (d *defaultTimeJumpSubject) Start() {
-	go d.Run()
+	startOnce.Do(func() {
+		go d.Run()
+	})
 }
 
 func getFinalConfig(c *TimeJumpSubjectConfig) *TimeJumpSubjectConfig {

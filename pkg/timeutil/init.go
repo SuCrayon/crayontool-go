@@ -1,5 +1,11 @@
 package timeutil
 
+import "sync"
+
+var (
+	initOnce sync.Once
+)
+
 type Config struct {
 	TimeJumpSubjectConfig TimeJumpSubjectConfig `json:"timeJumpSubjectConfig" yaml:"timeJumpSubjectConfig"`
 }
@@ -12,5 +18,7 @@ func initTimeJumpSubject(c *TimeJumpSubjectConfig) {
 }
 
 func Init(c *Config) {
-	initTimeJumpSubject(&c.TimeJumpSubjectConfig)
+	initOnce.Do(func() {
+		initTimeJumpSubject(&c.TimeJumpSubjectConfig)
+	})
 }

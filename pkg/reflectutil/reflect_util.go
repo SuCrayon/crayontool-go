@@ -10,6 +10,18 @@ func IsKindMap(kind reflect.Kind) bool {
 	return kind == reflect.Map
 }
 
+func IsKindArray(kind reflect.Kind) bool {
+	return kind == reflect.Array
+}
+
+func IsKindSlice(kind reflect.Kind) bool {
+	return kind == reflect.Slice
+}
+
+func IsKindOriginSequence(kind reflect.Kind) bool {
+	return IsKindArray(kind) || IsKindSlice(kind)
+}
+
 func IsValueKindMap(v interface{}) bool {
 	valueOf := reflect.ValueOf(v)
 	return IsKindMap(valueOf.Kind())

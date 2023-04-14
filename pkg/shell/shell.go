@@ -28,8 +28,8 @@ const (
 )
 
 var (
-	LackITypeErr = errors.New("ErrLackIType: InterceptorType is not specify")
-	CmdEmptyErr  = errors.New("ErrCmdEmpty: CmdList is empty")
+	ErrLackIType = errors.New("ErrLackIType: InterceptorType is not specify")
+	ErrCmdEmpty  = errors.New("ErrCmdEmpty: CmdList is empty")
 )
 
 type Req struct {
@@ -81,10 +81,10 @@ func NewReq() *Req {
 
 func (r *Req) validate() error {
 	if r.IType == "" {
-		return LackITypeErr
+		return ErrLackIType
 	}
 	if len(r.CmdList) == 0 {
-		return CmdEmptyErr
+		return ErrCmdEmpty
 	}
 	return nil
 }
