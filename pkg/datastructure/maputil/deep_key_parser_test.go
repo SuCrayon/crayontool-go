@@ -1,7 +1,7 @@
 package maputil
 
 import (
-	"crayontool-go/pkg/constant"
+	"github.com/SuCrayon/crayontool-go/pkg/constant"
 	"strings"
 	"testing"
 )

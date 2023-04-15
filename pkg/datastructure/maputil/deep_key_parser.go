@@ -1,8 +1,8 @@
 package maputil
 
 import (
-	"crayontool-go/pkg/constant"
-	"crayontool-go/pkg/strutil"
+	"github.com/SuCrayon/crayontool-go/pkg/constant"
+	"github.com/SuCrayon/crayontool-go/pkg/strutil"
 	"strings"
 	"sync"
 )

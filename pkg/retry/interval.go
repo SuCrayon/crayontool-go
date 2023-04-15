@@ -1,8 +1,8 @@
 package retry
 
 import (
-	"crayontool-go/pkg/datastructure/sliceutil"
-	"crayontool-go/pkg/logger"
+	"github.com/SuCrayon/crayontool-go/pkg/datastructure/sliceutil"
+	"github.com/SuCrayon/crayontool-go/pkg/logger"
 	"sync"
 	"time"
 )

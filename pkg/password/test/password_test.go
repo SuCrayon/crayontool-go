@@ -1,7 +1,7 @@
 package test
 
 import (
-	"crayontool-go/pkg/password"
+	"github.com/SuCrayon/crayontool-go/pkg/password"
 	"testing"
 )
 

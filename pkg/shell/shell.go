@@ -2,9 +2,9 @@ package shell
 
 import (
 	"bytes"
-	"crayontool-go/pkg/datastructure/set"
-	"crayontool-go/pkg/strutil"
 	"errors"
+	"github.com/SuCrayon/crayontool-go/pkg/datastructure/set"
+	"github.com/SuCrayon/crayontool-go/pkg/strutil"
 	"os/exec"
 )
 
@@ -28,19 +28,19 @@ const (
 )
 
 var (
-	LackITypeErr = errors.New("ErrLackIType: InterceptorType is not specify")
-	CmdEmptyErr  = errors.New("ErrCmdEmpty: CmdList is empty")
+	ErrLackIType = errors.New("ErrLackIType: InterceptorType is not specify")
+	ErrCmdEmpty  = errors.New("ErrCmdEmpty: CmdList is empty")
 )
 
 type Req struct {
 	// shell解释器类型
 	IType InterceptorType
 	// shell命令
-	CmdList  []string
+	CmdList []string
 	// 退出码白名单
 	exitCodeWhiteSet set.Set
-	executor *exec.Cmd
-	in       *bytes.Buffer
+	executor         *exec.Cmd
+	in               *bytes.Buffer
 }
 
 func (r *Req) SetIType(it InterceptorType) *Req {
@@ -69,10 +69,10 @@ func (t InterceptorType) ToString() string {
 
 func NewReq() *Req {
 	req := Req{
-		IType:    defaultIType,
-		CmdList:  make([]string, 0, defaultCmdListSize),
+		IType:            defaultIType,
+		CmdList:          make([]string, 0, defaultCmdListSize),
 		exitCodeWhiteSet: set.NewSet(),
-		executor: exec.Command(defaultIType),
+		executor:         exec.Command(defaultIType),
 	}
 	req.in = bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
 	req.executor.Stdin = req.in
@@ -81,10 +81,10 @@ func NewReq() *Req {
 
 func (r *Req) validate() error {
 	if r.IType == "" {
-		return LackITypeErr
+		return ErrLackIType
 	}
 	if len(r.CmdList) == 0 {
-		return CmdEmptyErr
+		return ErrCmdEmpty
 	}
 	return nil
 }

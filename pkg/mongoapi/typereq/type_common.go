@@ -1,7 +1,7 @@
 package typereq
 
 import (
-	"crayontool-go/pkg/constant"
+	"github.com/SuCrayon/crayontool-go/pkg/constant"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 

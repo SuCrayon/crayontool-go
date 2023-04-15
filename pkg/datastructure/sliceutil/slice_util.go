@@ -1,8 +1,8 @@
 package sliceutil
 
 import (
-	"crayontool-go/pkg/constant"
-	"crayontool-go/pkg/datastructure/set"
+	"github.com/SuCrayon/crayontool-go/pkg/constant"
+	"github.com/SuCrayon/crayontool-go/pkg/datastructure/set"
 )
 
 /*func OptionalParams2Set(vs ...interface{}) set.Set {

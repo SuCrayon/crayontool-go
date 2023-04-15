@@ -1,8 +1,8 @@
 package mongoapi
 
 import (
-	"crayontool-go/pkg/constant"
-	"crayontool-go/pkg/mongoapi/typereq"
+	"github.com/SuCrayon/crayontool-go/pkg/constant"
+	"github.com/SuCrayon/crayontool-go/pkg/mongoapi/typereq"
 	"testing"
 )
 

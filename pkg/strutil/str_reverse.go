@@ -1,8 +1,8 @@
 package strutil
 
 import (
-	"crayontool-go/pkg/constant"
-	"crayontool-go/pkg/datastructure/sliceutil"
+	"github.com/SuCrayon/crayontool-go/pkg/constant"
+	"github.com/SuCrayon/crayontool-go/pkg/datastructure/sliceutil"
 )
 
 // Reverse 字符串反转

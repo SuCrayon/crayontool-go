@@ -6,6 +6,7 @@ type IDeepKeyOperator interface {
 	Set(target map[string]interface{}, deepKey string, value interface{}) error
 	SetIfAbsent(target map[string]interface{}, deepKey string, value interface{}) error
 	Gen(deepKey string, value interface{}) (map[string]interface{}, error)
+	GenSilently(deepKey string, value interface{}) map[string]interface{}
 }
 
 type deepKeyOperator struct {
@@ -92,4 +93,9 @@ func (d *deepKeyOperator) SetIfAbsent(target map[string]interface{}, deepKey str
 func (d *deepKeyOperator) Gen(deepKey string, value interface{}) (map[string]interface{}, error) {
 	var ret = make(map[string]interface{})
 	return ret, d.Set(ret, deepKey, value)
+}
+
+func (d *deepKeyOperator) GenSilently(deepKey string, value interface{}) map[string]interface{} {
+	gen, _ := d.Gen(deepKey, value)
+	return gen
 }

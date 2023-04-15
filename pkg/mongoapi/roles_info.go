@@ -1,10 +1,10 @@
 package mongoapi
 
 import (
-	"crayontool-go/pkg/logger"
-	"crayontool-go/pkg/mongoapi/typereq"
-	"crayontool-go/pkg/mongoapi/typeresp"
 	"fmt"
+	"github.com/SuCrayon/crayontool-go/pkg/logger"
+	"github.com/SuCrayon/crayontool-go/pkg/mongoapi/typereq"
+	"github.com/SuCrayon/crayontool-go/pkg/mongoapi/typeresp"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 

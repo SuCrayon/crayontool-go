@@ -1,8 +1,8 @@
 package sshtunnel
 
 import (
-	"crayontool-go/pkg/osutil"
 	"fmt"
+	"github.com/SuCrayon/crayontool-go/pkg/osutil"
 	"os"
 	"testing"
 )

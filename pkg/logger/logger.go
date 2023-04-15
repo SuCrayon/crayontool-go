@@ -1,9 +1,9 @@
 package logger
 
 import (
-	"crayontool-go/pkg/strutil"
 	"errors"
 	"fmt"
+	"github.com/SuCrayon/crayontool-go/pkg/strutil"
 	"go.uber.org/zap"
 	"log"
 	"sync"

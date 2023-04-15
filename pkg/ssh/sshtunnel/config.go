@@ -1,7 +1,7 @@
 package sshtunnel
 
 import (
-	"crayontool-go/pkg/types"
+	"github.com/SuCrayon/crayontool-go/pkg/types"
 	"golang.org/x/crypto/ssh"
 	"net"
 	"time"

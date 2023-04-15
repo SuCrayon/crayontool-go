@@ -1,8 +1,8 @@
 package std
 
 import (
-	"crayontool-go/pkg/shell"
 	"fmt"
+	"github.com/SuCrayon/crayontool-go/pkg/shell"
 	"os"
 )
 

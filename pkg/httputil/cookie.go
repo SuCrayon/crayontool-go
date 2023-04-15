@@ -1,7 +1,7 @@
 package httputil
 
 import (
-	"crayontool-go/pkg/constant"
+	"github.com/SuCrayon/crayontool-go/pkg/constant"
 	"net/http"
 )
 

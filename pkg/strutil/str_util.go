@@ -1,8 +1,8 @@
 package strutil
 
 import (
-	"crayontool-go/pkg/constant"
-	"crayontool-go/pkg/datastructure/set"
+	"github.com/SuCrayon/crayontool-go/pkg/constant"
+	"github.com/SuCrayon/crayontool-go/pkg/datastructure/set"
 	"runtime"
 )
 
