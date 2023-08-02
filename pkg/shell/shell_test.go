@@ -47,7 +47,9 @@ func Test(t *testing.T) {
 			if err != nil {
 				t.Errorf("some errors occur, err: %v\n", err)
 			}
-			t.Logf("exec output: %s\n", string(ret))
+			t.Logf("exec exitCode: %d\n", ret.ExitCode())
+			t.Logf("exec stdout: %s\n", ret.Stdout().String())
+			t.Logf("exec stderr: %s\n", ret.Stderr().String())
 		})
 	}
 }
